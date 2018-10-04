@@ -27,6 +27,10 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		log.Printf("Stale share from %v@%v", login, ip)
 		return false, false
 	}
+	if t.version == 0 {
+		log.Printf("No version set %v@%v", login, ip)
+		return false, false
+	}
 
 	// extra check for duplicate shares without db
 	s.sharelock.Lock()
@@ -47,6 +51,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		difficulty:  big.NewInt(shareDiff),
 		nonce:       nonce,
 		mixDigest:   common.HexToHash(mixDigest),
+		version:     t.version,
 	}
 
 	block := Block{
@@ -55,12 +60,16 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		difficulty:  h.diff,
 		nonce:       nonce,
 		mixDigest:   common.HexToHash(mixDigest),
+		version:     t.version,
 	}
 
+	// test at pool difficulty
 	if !hasher.Verify(share) {
+		log.Println("not ok share, invalid POW")
 		return false, false
 	}
 
+	// at real difficulty
 	if hasher.Verify(block) {
 		ok, err := s.rpc().SubmitWork(params)
 		if err != nil {
