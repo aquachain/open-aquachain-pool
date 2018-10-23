@@ -9,8 +9,8 @@
 		"limitHeadersSize": 1024,
 		"limitBodySize": 256,
 		"behindReverseProxy": true,
-		"blockRefreshInterval": "120ms",
-		"stateUpdateInterval": "3s",
+		"blockRefreshInterval": "1000ms",
+		"stateUpdateInterval": "10s",
 		"difficulty": 7000000,
 		"hashrateExpiration": "3h",
 
@@ -18,7 +18,7 @@
 		"maxFails": 100,
 
 		"stratum": {
-			"enabled": true,
+			"enabled": false,
 			"listen": "0.0.0.0:19999",
 			"timeout": "120s",
 			"maxConn": 8192
@@ -50,7 +50,7 @@
 		"enabled": true,
 		"purgeOnly": false,
 		"purgeInterval": "10m",
-		"listen": "0.0.0.0:8080",
+		"listen": "127.0.0.1:8080",
 		"statsCollectInterval": "5s",
 		"hashrateWindow": "30m",
 		"hashrateLargeWindow": "3h",
@@ -109,6 +109,6 @@
 
 	"newrelicEnabled": false,
 	"newrelicName": "MyAquachainProxy",
-	"newrelicKey": "234werwuior4y5429847304987230948y324u23y",
+	"newrelicKey": "234we3wuior4y5429847304987230948y324u23y",
 	"newrelicVerbose": false
 }
