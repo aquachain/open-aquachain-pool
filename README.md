@@ -28,22 +28,19 @@ Use Caddy server to serve the dist folder, not npm serve.
 
 Dependencies:
 
-  * go >= 1.9
+  * go (building backend)
   * aquachain
   * redis-server >= 2.8.0
-  * nodejs >= 4 LTS
-  * nginx
+  * nodejs 8.x (building frontend)
+  * nginx or caddy server (reverse proxy)
 
-**I highly recommend to use Ubuntu 16.04 LTS.**
-
-First install  [aquachain](https://github.com/aquanetwork/aquachain/wiki/Basics).
+First install [aquachain](https://github.com/aquanetwork/aquachain/wiki/Basics).
 
 Clone & compile:
 
-    git config --global http.https://gopkg.in.followRedirects true
     git clone https://github.com/aquachain/open-aquachain-pool.git
     cd open-aquachain-pool
-    make
+    make # this builds backend and frontend
 
 Install redis-server.
 
@@ -54,6 +51,14 @@ Install redis-server.
 You can use Ubuntu upstart - check for sample config in <code>upstart.conf</code>.
 
 ### Building Frontend
+
+Easy way:
+
+Install nvm, 
+
+`nvm install 8; nvm use 8;` 
+`make frontend`
+
 
 Install nodejs. I suggest using LTS version >= 4.x from https://github.com/nodesource/distributions or from your Linux distribution or simply install nodejs on Ubuntu Xenial 16.04.
 
