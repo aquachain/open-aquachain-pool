@@ -9,8 +9,8 @@ NAME := aquapool
 .PHONY: all test clean deps
 GOBIN = build/bin
 OUTDIR = ${PWD}/${GOBIN}
-all: deps ${GOBIN}/${NAME}
-	go build -o ${GOBIN}/aquapool
+all: deps ${GOBIN}/${NAME} frontend
+
 .PHONY += all
 deps:
 	go get -d -v ./...
@@ -23,8 +23,11 @@ test: all
 	build/env.sh go test -v ./...
 
 clean:
-	rm -fr build/_workspace/pkg/ $(GOBIN)/*
-	rm -fr build/_workspace/src/ $(GOBIN)/*
+	${RM} -rf build/_workspace/pkg/ $(GOBIN)/*
+	${RM} -rf build/_workspace/src/ $(GOBIN)/*
+
+clean-www:
+	${RM} -rf www/dist 
 
 frontend: ${OUTDIR}/frontend.tar.gz
 
