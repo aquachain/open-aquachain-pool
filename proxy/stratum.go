@@ -103,7 +103,7 @@ func (s *ProxyServer) handleTCPClient(cs *Session) error {
 func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 	// Handle RPC methods
 	switch req.Method {
-	case "aqua_submitLogin":
+	case "aqua_submitLogin", "eth_submitLogin":
 		var params []string
 		err := json.Unmarshal(req.Params, &params)
 		if err != nil {
@@ -115,13 +115,13 @@ func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 			return cs.sendTCPError(req.Id, errReply)
 		}
 		return cs.sendTCPResult(req.Id, reply)
-	case "aqua_getWork":
+	case "aqua_getWork", "eth_getWork":
 		reply, errReply := s.handleGetWorkRPC(cs)
 		if errReply != nil {
 			return cs.sendTCPError(req.Id, errReply)
 		}
 		return cs.sendTCPResult(req.Id, &reply)
-	case "aqua_submitWork":
+	case "aqua_submitWork", "eth_submitWork":
 		var params []string
 		err := json.Unmarshal(req.Params, &params)
 		if err != nil {
@@ -133,7 +133,8 @@ func (cs *Session) handleTCPMessage(s *ProxyServer, req *StratumReq) error {
 			return cs.sendTCPError(req.Id, errReply)
 		}
 		return cs.sendTCPResult(req.Id, &reply)
-	case "aqua_submitHashrate":
+	case "aqua_submitHashrate", "eth_submitHashrate":
+		// handle noop
 		return cs.sendTCPResult(req.Id, true)
 	default:
 		errReply := s.handleUnknownRPC(cs, req.Method)
