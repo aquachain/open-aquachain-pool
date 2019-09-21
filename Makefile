@@ -17,7 +17,7 @@ deps:
 .PHONY += deps
 ${GOBIN}/${NAME}:
 	#go get -v -u -d gitlab.com/aquachain/aquachain
-	GOBIN=${PWD}/build/bin go install -tags 'netgo osusergo static' -ldflags '-s -w' -v ./...
+	CGO_ENABLED=0 go build -tags 'netgo osusergo static' -ldflags '-s -w' -v -o $@
 
 test: all
 	build/env.sh go test -v ./...
