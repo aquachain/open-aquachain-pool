@@ -4,16 +4,18 @@
 #
 
 NAME := aquapool
+#export GO111MODULE=on
 
 
 .PHONY: all test clean deps
 GOBIN = build/bin
 OUTDIR = ${PWD}/${GOBIN}
-all: deps ${GOBIN}/${NAME} frontend
+all: deps ${GOBIN}/${NAME}
 
 .PHONY += all
 deps:
-	go get -d -v ./...
+	CGO_ENABLED=0 go get -v -u -d gitlab.com/aquachain/aquachain
+	CGO_ENABLED=0 go get -d -v ./...
 .PHONY += deps
 ${GOBIN}/${NAME}:
 	#go get -v -u -d gitlab.com/aquachain/aquachain
