@@ -15,10 +15,10 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: '//nl.aquachain-foundation.org/',
+      ApiUrl: '//localhost:4200',
 
       // HTTP mining endpoint
-      HttpHost: 'http://nl.aquachain-foundation.org',
+      HttpHost: 'http://localhost',
       HttpPort: 8888,
 
       // Stratum mining endpoint
