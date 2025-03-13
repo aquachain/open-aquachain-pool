@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"gitlab.com/aquachain/aquachain/common/hexutil"
@@ -134,10 +135,16 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 		// Require unlocked account
-		if !u.isUnlockedAccount() {
+		if !aquasigner.Enabled() && !u.isUnlockedAccount() {
 			break
 		}
 
+		if aquasigner.Enabled() && !strings.EqualFold(aquasigner.Account(), u.config.Address) {
+			log.Printf("Signer address mismatch, expected %s, got %s, refusing to sign", u.config.Address, aquasigner.Account())
+			u.halt = true
+			u.lastFail = fmt.Errorf("account address mismatch")
+			break
+		}
 		// Check if we have enough funds
 		poolBalance, err := u.rpc.GetBalance(u.config.Address)
 		if err != nil {
@@ -146,8 +153,8 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 		if poolBalance.Cmp(amountInWei) < 0 {
-			err := fmt.Errorf("Not enough balance for payment, need %s Wei, pool has %s Wei",
-				amountInWei.String(), poolBalance.String())
+			err := fmt.Errorf("not enough balance for payment, need %s Wei, pool has %s Wei (/address/%s)",
+				amountInWei.String(), poolBalance.String(), u.config.Address)
 			u.halt = true
 			u.lastFail = err
 			break

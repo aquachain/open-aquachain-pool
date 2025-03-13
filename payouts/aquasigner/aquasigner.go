@@ -22,15 +22,19 @@ func Enabled() bool {
 	return private_key != nil
 }
 
+func Account() string {
+	if Enabled() {
+		return crypto.PubkeyToAddress(private_key.PubKey()).Hex()
+	}
+	return ""
+}
+
 func SignTx(chainId *big.Int, tx *types.Transaction) (txhash string, rawtx string, err error) {
 	if !Enabled() {
 		return "", "", fmt.Errorf("signing is disabled")
 	}
 	return Signer{k: private_key}.SignTx(chainId, tx)
 }
-
-// eth zero addr is 20 bytes of 0 (40 hex chars)
-var ZeroAddress = "0x0000000000000000000000000000000000000000"
 
 // SignTx without broadcasting, returns txhash and hex raw signed tx
 func (s Signer) SignTx(chainId *big.Int, tx *types.Transaction) (string, string, error) {
