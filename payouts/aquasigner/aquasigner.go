@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"gitlab.com/aquachain/aquachain/common"
@@ -74,11 +75,13 @@ var private_key = func() *btcec.PrivateKey {
 		}
 		got = string(got0)
 	}
+	got = strings.TrimSpace(got) // removes newlines
 	if len(got) != 0 {
 		key, err := crypto.HexToBtcec(got)
 		if err != nil {
-			log.Fatalf("could not parse PRIVATE_KEY_HEX: %v", err)
+			log.Fatalf("could not parse signing key: %v", err)
 		}
+		log.Println("local signer enabled")
 		return key
 	}
 	return nil
