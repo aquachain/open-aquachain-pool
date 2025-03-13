@@ -1,0 +1,40 @@
+name: Test
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+concurrency:
+  group: ci/${{ github.ref }}/test
+  cancel-in-progress: true
+  
+jobs:
+  run:
+    name: Test
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-24.04]
+        # operating-system: [ubuntu-24.04, windows-2025]
+        # operating-system: [ubuntu-24.04, ubuntu-22.04, windows-2025, windows-2022]
+    steps:
+      - name: Checkout this branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-tags: true
+      - name: show system info
+        run: env || true; uname -a || true; test ! -e /etc/os-release || cat /etc/os-release; echo ${{ github.ref_name }} - ${{ github.ref }}
+      - name: Go Vet
+        run: CGO_ENABLED=0 go vet -tags 'netgo osusergo static' -trimpath -v -ldflags '-s -w -buildid= '
+      - name: Build aquapool
+        run: make
+      - name: Upload aquapool binary
+        uses: aerth/upload-artifacts@v4.6.4-aerth
+        with:
+          path: build/bin
+      - name: Run tests
+        run: make test
