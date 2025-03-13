@@ -8,3 +8,4 @@ testnet.json
 /release
 /.k*
 *.key
+node_modules
