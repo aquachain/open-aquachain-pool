@@ -6,3 +6,5 @@ testnet.json
 /build/bin/
 /open-aquachain-pool
 /release
+/.k*
+*.key
