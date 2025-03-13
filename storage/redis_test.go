@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -14,15 +15,25 @@ var r *RedisClient
 const prefix = "test"
 
 func TestMain(m *testing.M) {
+	if os.Getenv("REDIS_TESTS") != "1" {
+		log.Println("Skipping tests (REDIS_TESTS not 1)")
+		return
+	}
 	r = NewRedisClient(&Config{Endpoint: "127.0.0.1:6379"}, prefix)
-	reset()
+	keys := r.client.Keys(r.prefix + ":*").Val()
+	for _, k := range keys {
+		r.client.Del(k)
+	}
 	c := m.Run()
-	reset()
+	keys = r.client.Keys(r.prefix + ":*").Val()
+	for _, k := range keys {
+		r.client.Del(k)
+	}
 	os.Exit(c)
 }
 
 func TestWriteShareCheckExist(t *testing.T) {
-	reset()
+	reset(t)
 
 	exist, _ := r.WriteShare("x", "x", []string{"0x0", "0x0", "0x0"}, 10, 1008, 0)
 	if exist {
@@ -47,7 +58,7 @@ func TestWriteShareCheckExist(t *testing.T) {
 }
 
 func TestGetPayees(t *testing.T) {
-	reset()
+	reset(t)
 
 	n := 256
 	for i := 0; i < n; i++ {
@@ -69,7 +80,7 @@ func TestGetPayees(t *testing.T) {
 }
 
 func TestGetBalance(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.HSet(r.formatKey("miners:x"), "balance", "750")
 
@@ -88,7 +99,7 @@ func TestGetBalance(t *testing.T) {
 }
 
 func TestLockPayouts(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.LockPayouts("x", 1000)
 	v := r.client.Get("test:payments:lock").Val()
@@ -103,7 +114,7 @@ func TestLockPayouts(t *testing.T) {
 }
 
 func TestUnlockPayouts(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.Set(r.formatKey("payments:lock"), "x:1000", 0)
 
@@ -115,7 +126,7 @@ func TestUnlockPayouts(t *testing.T) {
 }
 
 func TestIsPayoutsLocked(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.LockPayouts("x", 1000)
 	if locked, _ := r.IsPayoutsLocked(); !locked {
@@ -124,7 +135,7 @@ func TestIsPayoutsLocked(t *testing.T) {
 }
 
 func TestUpdateBalance(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.HMSetMap(
 		r.formatKey("miners:x"),
@@ -166,7 +177,7 @@ func TestUpdateBalance(t *testing.T) {
 }
 
 func TestRollbackBalance(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.HMSetMap(
 		r.formatKey("miners:x"),
@@ -209,7 +220,7 @@ func TestRollbackBalance(t *testing.T) {
 }
 
 func TestWritePayment(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.HMSetMap(
 		r.formatKey("miners:x"),
@@ -264,7 +275,7 @@ func TestWritePayment(t *testing.T) {
 }
 
 func TestGetPendingPayments(t *testing.T) {
-	reset()
+	reset(t)
 
 	r.client.HMSetMap(
 		r.formatKey("miners:x"),
@@ -290,7 +301,7 @@ func TestGetPendingPayments(t *testing.T) {
 }
 
 func TestCollectLuckStats(t *testing.T) {
-	reset()
+	reset(t)
 
 	members := []redis.Z{
 		{Score: 0, Member: "1:0:0x0:0x0:0:100:100:0"},
@@ -321,7 +332,17 @@ func TestCollectLuckStats(t *testing.T) {
 	}
 }
 
-func reset() {
+type SkipNowable interface {
+	SkipNow()
+	Name() string
+}
+
+func reset(t SkipNowable) {
+	if os.Getenv("REDIS_TESTS") != "1" {
+		log.Printf("Skipping test %v (REDIS_TESTS not 1)", t.Name())
+		t.SkipNow()
+		return
+	}
 	keys := r.client.Keys(r.prefix + ":*").Val()
 	for _, k := range keys {
 		r.client.Del(k)
