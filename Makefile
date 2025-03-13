@@ -10,16 +10,20 @@ NAME := aquapool
 .PHONY: all test clean deps
 GOBIN = build/bin
 OUTDIR = ${PWD}/${GOBIN}
-all: deps ${GOBIN}/${NAME}
+all: ${GOBIN}/${NAME}
+	@echo "Build complete"
+	@file ${GOBIN}/${NAME}
+	@echo "Consider running 'make deps' to bump dependencies"
 
 .PHONY += all
 deps:
-	CGO_ENABLED=0 go get -v -u -d gitlab.com/aquachain/aquachain
-	CGO_ENABLED=0 go get -d -v ./...
+	CGO_ENABLED=0 go get -v -u gitlab.com/aquachain/aquachain@master
+	CGO_ENABLED=0 go get -v ./...
 .PHONY += deps
-${GOBIN}/${NAME}:
+${GOBIN}/${NAME}: *.go */*.go */*/*.go
 	#go get -v -u -d gitlab.com/aquachain/aquachain
-	CGO_ENABLED=0 go build -tags 'netgo osusergo static' -ldflags '-s -w' -v -o $@
+	CGO_ENABLED=0 go build -trimpath -tags 'netgo osusergo static' -ldflags '-s -w' -v -o $@
+
 
 test: all
 	build/env.sh go test -v ./...
