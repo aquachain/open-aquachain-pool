@@ -121,21 +121,29 @@ func (u *PayoutsProcessor) process() {
 	for _, login := range payees {
 		amount, _ := u.backend.GetBalance(login)
 		amountInShannon := big.NewInt(amount)
+		log.Printf("balance for %s: %v shannon", login, amountInShannon)
+	}
+	for _, login := range payees {
+		amount, _ := u.backend.GetBalance(login)
+		amountInShannon := big.NewInt(amount)
 
 		// Shannon^2 = Wei
 		amountInWei := new(big.Int).Mul(amountInShannon, util.Shannon)
 
 		if !u.reachedThreshold(amountInShannon) {
+			log.Printf("Skipping %s, balance %v Shannon is less than threshold %v Shannon", login, amountInShannon, u.config.Threshold)
 			continue
 		}
 		mustPay++
 
 		// Require active peers before processing
 		if !u.checkPeers() {
+			log.Println("Not enough peers to process payouts, skipping")
 			break
 		}
 		// Require unlocked account
 		if !aquasigner.Enabled() && !u.isUnlockedAccount() {
+			log.Printf("Account %s is locked, refusing to sign", u.config.Address)
 			break
 		}
 
@@ -148,8 +156,10 @@ func (u *PayoutsProcessor) process() {
 		// Check if we have enough funds
 		poolBalance, err := u.rpc.GetBalance(u.config.Address)
 		if err != nil {
+			log.Printf("Failed to get balance for %s: %v", u.config.Address, err)
 			u.halt = true
 			u.lastFail = err
+
 			break
 		}
 		if poolBalance.Cmp(amountInWei) < 0 {
@@ -196,6 +206,7 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
+		log.Printf("Sent %v Shannon to %v, TxHash: %v", amount, login, txHash)
 		// Log transaction hash
 		err = u.backend.WritePayment(login, txHash, amount)
 		if err != nil {
