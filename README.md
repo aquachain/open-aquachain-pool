@@ -4,6 +4,18 @@ All credit goes to https://github.com/sammy007/open-ethereum-pool
 
 Modified for mining Aquachain.
 
+## Activate Local Signing
+
+first make a private key using `aquachain paper` and put the private key part into a file (for example `pool.key`)
+
+then when running the payouts module, make sure environmental variable is set: `PRIVATE_KEY_HEXFILE=pool.key`
+
+env `PRIVATE_KEY_HEX` is used if exists.
+
+If none of these env exist, remote signing is used.
+
+Note: Pool coinbase may be different than signer but you should have enough coin for payouts.
+
 Use Caddy server to serve the dist folder, not npm serve.
 
 ![Miner's stats page](https://user-images.githubusercontent.com/7374093/31591180-43c72364-b236-11e7-8d47-726cd66b876a.png)
