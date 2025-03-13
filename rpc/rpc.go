@@ -253,7 +253,7 @@ func (r *RPCClient) SendTransactionLocal(from, to string, gas uint64, gasPrice, 
 	}
 	// sign locally
 	tx := types.NewTransaction(nonce, common.HexToAddress(to), value, gas, gasPrice, nil)
-	txhash, signedHex, err := aquasigner.SignTx(params.MainnetChainConfig.ChainId, tx) // TODO config chainid
+	txhash, signedHex, err := aquasigner.SignTx(params.MainnetChainConfig.ChainId, tx) // TODO: config chainid for offline signer!!
 	if err != nil {
 		return "", fmt.Errorf("could not sign transaction: %v", err)
 	}
