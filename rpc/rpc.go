@@ -251,10 +251,6 @@ func (r *RPCClient) SendTransactionLocal(from, to string, gas uint64, gasPrice, 
 		return "", fmt.Errorf("could not sign transaction: %v", err)
 	}
 	println("signed tx: ", txhash, signedHex)
-	if tx.Hash().Hex() != txhash {
-		return "", fmt.Errorf("tx hash mismatch: %s != %s", tx.Hash().Hex(), txhash)
-	}
-	println("sending")
 	resp, err := r.SendRawTransaction(signedHex)
 	println("sendtx reply: ", txhash, resp)
 	if err != nil {
