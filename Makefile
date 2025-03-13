@@ -12,7 +12,7 @@ GOBIN = build/bin
 OUTDIR = ${PWD}/${GOBIN}
 all: ${GOBIN}/${NAME}
 	@echo "Build complete"
-	@file ${GOBIN}/${NAME}
+	@file ${GOBIN}/${NAME} || true
 	@echo "Consider running 'make deps' to bump dependencies"
 
 .PHONY += all
@@ -24,7 +24,7 @@ ${GOBIN}/${NAME}: *.go */*.go */*/*.go
 	#go get -v -u -d gitlab.com/aquachain/aquachain
 	CGO_ENABLED=0 go build -trimpath -tags 'netgo osusergo static' -ldflags '-s -w' -v -o $@
 
-release: ${GOBIN}/${NAME} ${GOBIN}/frontend.tar.gz:
+release: ${GOBIN}/${NAME} ${GOBIN}/frontend.tar.gz
 	rm -rf ./release
 	mkdir -p ./release
 	cp ${GOBIN}/${NAME} ./release/
