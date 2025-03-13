@@ -14,10 +14,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@master
-      - name: Generate
-        uses: skx/github-action-build@master
-        with:
-          builder: release_builder.sh # this is a shell script in *this* repo that builds ./release/* archives
+      - name: Build Release
+        run: make release
       - name: Publish release
         id: release
         uses: ncipollo/release-action@v1.15.0 # https://github.com/ncipollo/release-action?tab=readme-ov-file#action-inputs
