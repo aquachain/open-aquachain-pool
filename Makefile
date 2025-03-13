@@ -26,11 +26,11 @@ ${GOBIN}/${NAME}: *.go */*.go */*/*.go
 
 
 test: all
-	build/env.sh go test -v ./...
+	CGO_ENABLED=0 go test -v ./...
 
 clean:
-	${RM} -rf build/_workspace/pkg/ $(GOBIN)/*
-	${RM} -rf build/_workspace/src/ $(GOBIN)/*
+	${RM} -rf build/_workspace/pkg/
+	${RM} -rf build/_workspace/src/
 
 clean-www:
 	${RM} -rf www/dist 
