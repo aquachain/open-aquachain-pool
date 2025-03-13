@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/yvasiyarov/gorelic"
+	"gitlab.com/aquachain/aquachain/subcommands/mainctxs"
 
 	"github.com/aquachain/open-aquachain-pool/api"
 	"github.com/aquachain/open-aquachain-pool/payouts"
@@ -105,6 +106,6 @@ func main() {
 	if cfg.Payouts.Enabled {
 		go startPayoutsProcessor()
 	}
-	quit := make(chan bool)
-	<-quit
+	<-mainctxs.Main().Done()
+	os.Exit(1)
 }
