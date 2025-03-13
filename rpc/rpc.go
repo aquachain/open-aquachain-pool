@@ -13,7 +13,10 @@ import (
 	"sync"
 
 	"gitlab.com/aquachain/aquachain/common"
+	"gitlab.com/aquachain/aquachain/core/types"
+	"gitlab.com/aquachain/aquachain/params"
 
+	"github.com/aquachain/open-aquachain-pool/payouts/aquasigner"
 	"github.com/aquachain/open-aquachain-pool/util"
 )
 
@@ -205,6 +208,66 @@ func (r *RPCClient) GetPeerCount() (int64, error) {
 	return strconv.ParseInt(strings.Replace(reply, "0x", "", -1), 16, 64)
 }
 
+func (r *RPCClient) SendRawTransaction(hexed string) (string, error) {
+	rpcResp, err := r.doPost(r.Url, "aqua_sendRawTransaction", []interface{}{hexed})
+	var reply string
+	if err != nil {
+		return reply, err
+	}
+	err = json.Unmarshal(*rpcResp.Result, &reply)
+	if err != nil {
+		return reply, err
+	}
+	/* There is an inconsistence in a "standard". Aquachain returns error if it can't unlock signer account,
+	 * but Parity returns zero hash 0x000... if it can't send tx, so we must handle this case.
+	 * https://github.com/ethereum/wiki/wiki/JSON-RPC#returns-22
+	 */
+	if util.IsZeroHash(reply) {
+		err = errors.New("transaction is not yet available")
+	}
+	return reply, err
+}
+
+func (r *RPCClient) GetPendingNonce(address string) (uint64, error) {
+	rpcResp, err := r.doPost(r.Url, "aqua_getTransactionCount", []interface{}{address, "pending"})
+	if err != nil {
+		return 0, err
+	}
+	var reply string
+	err = json.Unmarshal(*rpcResp.Result, &reply)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseUint(strings.Replace(reply, "0x", "", -1), 16, 64)
+}
+
+// signs offline, sends online, returns tx hash
+func (r *RPCClient) SendTransactionLocal(from, to string, gas uint64, gasPrice, value *big.Int, autoGas bool) (string, error) {
+	if !aquasigner.Enabled() {
+		return "", errors.New("PRIVATE_KEY_HEX not set, can't sign transaction")
+	}
+	// get pending nonce
+	nonce, err := r.GetPendingNonce(from)
+	if err != nil {
+		return "", fmt.Errorf("could not fetch nonce: %v", err)
+	}
+	// sign locally
+	tx := types.NewTransaction(nonce, common.HexToAddress(to), value, gas, gasPrice, nil)
+	txhash, signedHex, err := aquasigner.SignTx(params.MainnetChainConfig.ChainId, tx) // TODO config chainid
+	if err != nil {
+		return "", fmt.Errorf("could not sign transaction: %v", err)
+	}
+	if tx.Hash().Hex() != txhash {
+		return "", fmt.Errorf("tx hash mismatch: %s != %s", tx.Hash().Hex(), txhash)
+	}
+	resp, err := r.SendRawTransaction(signedHex)
+	println("sendtx reply: ", txhash, resp)
+	if err != nil {
+		return txhash, fmt.Errorf("could not send transaction: %v", err)
+	}
+	return txhash, nil
+
+}
 func (r *RPCClient) SendTransaction(from, to, gas, gasPrice, value string, autoGas bool) (string, error) {
 	params := map[string]string{
 		"from":  from,

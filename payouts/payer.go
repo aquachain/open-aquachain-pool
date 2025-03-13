@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/aquachain/aquachain/common/hexutil"
 
+	"github.com/aquachain/open-aquachain-pool/payouts/aquasigner"
 	"github.com/aquachain/open-aquachain-pool/rpc"
 	"github.com/aquachain/open-aquachain-pool/storage"
 	"github.com/aquachain/open-aquachain-pool/util"
@@ -172,7 +173,14 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		value := hexutil.EncodeBig(amountInWei)
-		txHash, err := u.rpc.SendTransaction(u.config.Address, login, u.config.GasHex(), u.config.GasPriceHex(), value, u.config.AutoGas)
+		var (
+			txHash string
+		)
+		if aquasigner.Enabled() {
+			txHash, err = u.rpc.SendTransactionLocal(u.config.Address, login, util.String2Big(u.config.Gas).Uint64(), util.String2Big(u.config.GasPrice), amountInWei, u.config.AutoGas)
+		} else {
+			txHash, err = u.rpc.SendTransaction(u.config.Address, login, u.config.GasHex(), u.config.GasPriceHex(), value, u.config.AutoGas)
+		}
 		if err != nil {
 			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
 				login, amount, err, login)
