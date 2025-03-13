@@ -24,6 +24,12 @@ ${GOBIN}/${NAME}: *.go */*.go */*/*.go
 	#go get -v -u -d gitlab.com/aquachain/aquachain
 	CGO_ENABLED=0 go build -trimpath -tags 'netgo osusergo static' -ldflags '-s -w' -v -o $@
 
+release: ${GOBIN}/${NAME} ${GOBIN}/frontend.tar.gz:
+	rm -rf ./release
+	mkdir -p ./release
+	cp ${GOBIN}/${NAME} ./release/
+	cp ${GOBIN}/frontend.tar.gz ./release/
+	cd release && tar czf ${NAME}.tar.gz ${NAME}
 
 test: all
 	CGO_ENABLED=0 go test -v ./...

@@ -1,0 +1,38 @@
+
+name: Release
+on:
+  push:
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+  generate:
+    name: Cross-compile + Upload Release
+    env: # https://docs.github.com/en/actions/reference/environment-variables
+      GITHUB_TAG_NAME: ${{ github.ref }}
+    runs-on: ubuntu-latest
+    # if: github.repository_owner == 'aquachain'
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@master
+      - name: Generate
+        uses: skx/github-action-build@master
+        with:
+          builder: release_builder.sh # this is a shell script in *this* repo that builds ./release/* archives
+      - name: Publish release
+        id: release
+        uses: ncipollo/release-action@v1.15.0 # https://github.com/ncipollo/release-action?tab=readme-ov-file#action-inputs
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: false
+          artifacts: |
+            release/*.*
+          artifactContentType: "raw"
+          draft: not(startsWith(github.event.ref, 'refs/tags/'))
+          generateReleaseNotes: true
+          prerelease: contains(github.tag_name, '-')
+          replacesArtifacts: true
+          omitDraftDuringUpdate: false
+      - name: Dump Release Outputs
+        env:
+          RELEASE_OUTPUT: ${{ toJson(steps.release.outputs) }}
+        run: echo "$RELEASE_OUTPUT"
