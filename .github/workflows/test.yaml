@@ -21,6 +21,9 @@ jobs:
         # operating-system: [ubuntu-24.04, windows-2025]
         # operating-system: [ubuntu-24.04, ubuntu-22.04, windows-2025, windows-2022]
     steps:
+      - name: Install Redis Server
+        if: matrix.operating-system == 'ubuntu-24.04'
+        run: sudo apt update && sudo apt install -y make file redis-server
       - name: Checkout this branch
         uses: actions/checkout@v4
         with:
@@ -37,4 +40,4 @@ jobs:
         with:
           path: build/bin
       - name: Run tests
-        run: make test
+        run: REDIS_TESTS=1 make test
