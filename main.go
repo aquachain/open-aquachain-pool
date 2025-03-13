@@ -1,9 +1,11 @@
+//go:build go1.9
 // +build go1.9
 
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"math/rand"
 	"os"
@@ -72,6 +74,7 @@ func readConfig(cfg *proxy.Config) {
 }
 
 func main() {
+	flag.Parse() // handle -h
 	readConfig(&cfg)
 	rand.Seed(time.Now().UnixNano())
 
