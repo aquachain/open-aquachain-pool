@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	"gopkg.in/redis.v3"
 )
 
 var r *RedisClient
