@@ -218,13 +218,6 @@ func (r *RPCClient) SendRawTransaction(hexed string) (string, error) {
 	if err != nil {
 		return reply, err
 	}
-	/* There is an inconsistence in a "standard". Aquachain returns error if it can't unlock signer account,
-	 * but Parity returns zero hash 0x000... if it can't send tx, so we must handle this case.
-	 * https://github.com/ethereum/wiki/wiki/JSON-RPC#returns-22
-	 */
-	if util.IsZeroHash(reply) {
-		err = errors.New("transaction is not yet available")
-	}
 	return reply, err
 }
 
@@ -257,9 +250,11 @@ func (r *RPCClient) SendTransactionLocal(from, to string, gas uint64, gasPrice, 
 	if err != nil {
 		return "", fmt.Errorf("could not sign transaction: %v", err)
 	}
+	println("signed tx: ", txhash, signedHex)
 	if tx.Hash().Hex() != txhash {
 		return "", fmt.Errorf("tx hash mismatch: %s != %s", tx.Hash().Hex(), txhash)
 	}
+	println("sending")
 	resp, err := r.SendRawTransaction(signedHex)
 	println("sendtx reply: ", txhash, resp)
 	if err != nil {
